@@ -2,6 +2,7 @@ const responseUtil = require("../utils/ResponseUtil")
 const {validationResult} = require("express-validator")
 const userService = require('../services/User')
 const mediaService = require("../services/Media")
+const fs = require("fs")
 exports.register = async (request, response) => {
     try {
         const errors = validationResult(request)
@@ -18,15 +19,10 @@ exports.login = async (request, response) => {
         const user = await userService.findUserByEmail(request.body.email);
         if (!user) return response.status(responseUtil.HTTP_BAD_REQUEST).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_BAD_REQUEST, null, false, null))
         if (!await userService.comparePassword(request.body.password, user.password)) return response.status(responseUtil.HTTP_UNAUTHORIZED).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_UNAUTHORIZED, null, false, null))
-        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userService.buildUserResource(user)));
+        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userService.buildAuthUserResource(user)));
     } catch (e) {
         return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.stack, false, null))
     }
-}
-
-exports.setAvatar = async (request, response) => {
-    //todo client side will treat(resize them accordingly) images before sending them to the server so here no additional treatment will be donne
-    await response.json("ici")
 }
 
 exports.setMediaAsBookmarked = async (request, response) => {
@@ -39,4 +35,22 @@ exports.setMediaAsBookmarked = async (request, response) => {
     } catch (e) {
         return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_BAD_REQUEST, e.message, false, null))
     }
+}
+
+exports.setAvatar = async (request, response) => {
+    try {
+        let userResource = await userService.setBase64Avatar(request.body.avatarLarge, request.body.avatarMedium, request.body.avatarSmall, request.body.userId)
+        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, false, userResource))
+    }catch (e) {
+        return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.message, false, null))
+    }
+}
+
+exports.saveImg = (base64Img, userId) => {
+    let regex = /^data:.+\/(.+);base64,(.*)$/;
+    let matches = base64Img.match(regex);
+    let ext = matches[1];
+    let data = matches[2];
+    let avatarLargeBuffer = Buffer.from(data, 'base64');
+    fs.writeFileSync('public/profiles/' + userId + "." + ext, avatarLargeBuffer);
 }

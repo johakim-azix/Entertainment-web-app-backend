@@ -16,7 +16,7 @@ router.post("/register",
 
 router.post("/login", body("email").isEmail().withMessage(authRequestValidator.REGISTER_VALIDATION_MESSAGES.email.not_valid),authController.login)
 
-router.post("/set/avatar", authController.setAvatar)
+router.post("/upload/avatar", authController.setAvatar)
 
 router.post(
     "/add/bookmark",

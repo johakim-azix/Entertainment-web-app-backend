@@ -5,6 +5,7 @@ exports.getMedias = async (constraints, userId) => {
     let query = mediaModel.find()
     if (constraints.category !== null) query.where("category").equals(constraints.category);
     if (constraints.isTrending) query.where("isTrending").equals(constraints.isTrending);
+    if (constraints.strSearch !==null && constraints.strSearch !==undefined && constraints.strSearch.length>0) query.find({title: {$regex : '.*'+constraints.strSearch+'.*'}});
     if (!constraints.isBookmarked){
         return await query.exec()
     }else {
