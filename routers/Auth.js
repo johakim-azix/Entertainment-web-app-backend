@@ -23,4 +23,11 @@ router.post(
     body("mediaId").notEmpty().withMessage(mediaRequestValidator.MEDIA_VALIDATION_MESSAGES.mediaId.not_valid),
     authController.setMediaAsBookmarked)
 
+router.get(
+    "/refresh/token",
+    authController.refreshToken
+)
+
+router.get("/logout", authController.logout)
+
 module.exports = router

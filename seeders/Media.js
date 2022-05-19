@@ -1,3 +1,5 @@
+const mongoose = require("mongoose")
+const env = require("../env.configs")
 const medialModel = require("../App/models/Media")
 exports.jsonMedias = [
     {
@@ -429,12 +431,32 @@ exports.jsonMedias = [
 ]
 
 exports.populateMediaCollection = async (jsonMedias) => {
-    const medias = await medialModel.findOne({title: "Beyond Earth"});
-    if (medias) return
-    jsonMedias.forEach((jsonMedia) => {
-        const media = new medialModel(jsonMedia)
-        media.save().catch(error => {
-            throw new Error(" Error while inserting : " + media.title + ", Here is what happened : " + error.stack)
+    try {
+        const medias = await medialModel.find().exec();
+        if (medias.length !==0) throw new Error("The media collection is not empty!!! drop it first and retry again!!")
+        jsonMedias.forEach((jsonMedia) => {
+            const media = new medialModel(jsonMedia)
+            media.save().catch(error => {
+                throw new Error(" Error while inserting : " + media.title + ", Here is what happened : " + error.message)
+            })
         })
-    })
+    } catch (e) {
+        throw e
+    }
 }
+
+mongoose.connect(env.configs.DB_URL, {useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
+    console.log('Connexion à MongoDB réussie !')
+    this.populateMediaCollection(this.jsonMedias).then(r => {
+        console.info("The media collection has been populated successfully!!")
+        //todo : close the opened connexion
+    }).catch(error => {
+        throw new Error(error.message)
+        //todo : close the opened connexion
+    })
+}).catch((error) => {
+    console.log('Connexion à MongoDB échouée ! la cause en dessous : ')
+    console.log(error.message)
+});
+
+

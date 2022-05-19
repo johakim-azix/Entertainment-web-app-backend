@@ -1,15 +1,16 @@
 {
-  "name": "test_men_stack",
+  "name": "entertainment-web-app-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is the backend part for the frontend mentors entertainment-web-app challenge, it's a part of a full stack solution and it's meant to feed the frontend part of the same challenge.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Joseph Penda",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.6",
     "express": "^4.18.0",
     "express-validator": "^6.14.0",
     "jsonwebtoken": "^8.5.1",

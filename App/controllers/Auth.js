@@ -3,6 +3,7 @@ const {validationResult} = require("express-validator")
 const userService = require('../services/User')
 const mediaService = require("../services/Media")
 const fs = require("fs")
+
 exports.register = async (request, response) => {
     try {
         const errors = validationResult(request)
@@ -19,9 +20,28 @@ exports.login = async (request, response) => {
         const user = await userService.findUserByEmail(request.body.email);
         if (!user) return response.status(responseUtil.HTTP_BAD_REQUEST).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_BAD_REQUEST, null, false, null))
         if (!await userService.comparePassword(request.body.password, user.password)) return response.status(responseUtil.HTTP_UNAUTHORIZED).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_UNAUTHORIZED, null, false, null))
-        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userService.buildAuthUserResource(user)));
+        const userResource = await userService.buildAuthUserResource(user)
+        return response
+            .cookie("refresh_token",
+                userResource.refreshToken,
+                {
+                    secure: true,
+                    httpOnly: true
+                })
+            .status(responseUtil.HTTP_OK)
+            .json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userResource));
     } catch (e) {
         return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.stack, false, null))
+    }
+}
+
+exports.logout = async (request, response) => {
+    try {
+        const refreshToken = request.headers.cookie.split("refresh_token=")[1]
+        await userService.clearRefreshToken(refreshToken)
+        return response.clearCookie().status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, null))
+    } catch (e) {
+        return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.message, false, null))
     }
 }
 
@@ -30,7 +50,6 @@ exports.setMediaAsBookmarked = async (request, response) => {
         let media = await mediaService.findMedia(request.body.mediaId)
         if (!media) await response.status(responseUtil.HTTP_NOT_ALLOWED).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_BAD_REQUEST, responseUtil.HTTP_TEXT_MESSAGES.HTTP_NO_CONTENT, false, null));
         media = await userService.addBookmark(request.body.mediaId, request.body.userId)
-        console.log(media)
         await response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, mediaService.buildMediaResources([media], request.body.userId)))
     } catch (e) {
         return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_BAD_REQUEST, e.message, false, null))
@@ -40,8 +59,26 @@ exports.setMediaAsBookmarked = async (request, response) => {
 exports.setAvatar = async (request, response) => {
     try {
         let userResource = await userService.setBase64Avatar(request.body.avatarLarge, request.body.avatarMedium, request.body.avatarSmall, request.body.userId)
-        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, false, userResource))
-    }catch (e) {
+        return response.status(responseUtil.HTTP_OK).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userResource))
+    } catch (e) {
+        return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.message, false, null))
+    }
+}
+
+exports.refreshToken = async (request, response) => {
+    try {
+        const refreshToken = request.headers.cookie.split("refresh_token=")[1]
+        const userResource = await userService.validateRefreshToken(refreshToken)
+        return response
+            .cookie("refresh_token",
+                userResource.refreshToken,
+                {
+                    secure: true,
+                    httpOnly: true
+                })
+            .status(responseUtil.HTTP_OK)
+            .json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userResource))
+    } catch (e) {
         return response.status(responseUtil.HTTP_INTERNAL_SERVER_ERROR).json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_INTERNAL_SERVER_ERROR, e.message, false, null))
     }
 }
