@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const env = require("../env.configs")
+const env = require("../env")
 const medialModel = require("../App/models/Media")
 exports.jsonMedias = [
     {
@@ -445,7 +445,7 @@ exports.populateMediaCollection = async (jsonMedias) => {
     }
 }
 
-mongoose.connect(env.configs.DB_URL, {useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
+mongoose.connect(env.DB_URL, {useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
     console.log('Connexion à MongoDB réussie !')
     this.populateMediaCollection(this.jsonMedias).then(r => {
         console.info("The media collection has been populated successfully!!")
