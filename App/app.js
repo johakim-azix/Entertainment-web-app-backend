@@ -8,7 +8,7 @@ const authRouter = require("../routers/Auth")
 const mediaRouter = require("../routers/Media")
 mongoose.connect(env.DB_URL, {useNewUrlParser: true, useUnifiedTopology: true}).then(() => console.log('Connexion à MongoDB réussie !')).catch(() => console.log('Connexion à MongoDB échouée !'));
 app.use(cors({
-    origin:"*"
+    origin:"https://johakim-azix.github.io/Entertainment-web-app-frontend/"
 }))
 app.use(express.json());
 app.use(cookieParser());
