@@ -3,7 +3,7 @@ const {validationResult} = require("express-validator")
 const userService = require('../services/User')
 const mediaService = require("../services/Media")
 const fs = require("fs")
-const env = require("../env")
+// const env = require("../env")
 
 
 exports.register = async (request, response) => {
