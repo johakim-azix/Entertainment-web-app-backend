@@ -11,8 +11,8 @@ app.use(cookieParser());
 app.use("/public",express.static("public"))
 app.use((req, res, next) => { /*todo : general middleware ; it's applied to every request*/
     env.CLIENT_URL.forEach(url =>{
-        if ( url === req.origin) res.setHeader('Access-Control-Allow-Origin', req.origin);
-        console.log(req.headers)
+        if ( url === req.headers.origin) res.setHeader('Access-Control-Allow-Origin', req.origin);
+        // console.log(req.headers)
     })
 
     res.setHeader('Access-Control-Allow-Credentials', true);
