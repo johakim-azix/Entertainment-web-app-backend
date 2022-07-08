@@ -28,8 +28,7 @@ exports.login = async (request, response) => {
                 userResource.refreshToken,
                 {
                     secure: true,
-                    httpOnly: true,
-                    domain:env.CLIENT_URL
+                    httpOnly: true
                 })
             .status(responseUtil.HTTP_OK)
             .json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userResource));
