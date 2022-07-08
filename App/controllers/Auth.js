@@ -3,6 +3,8 @@ const {validationResult} = require("express-validator")
 const userService = require('../services/User')
 const mediaService = require("../services/Media")
 const fs = require("fs")
+const env = require("../env")
+
 
 exports.register = async (request, response) => {
     try {
@@ -26,7 +28,8 @@ exports.login = async (request, response) => {
                 userResource.refreshToken,
                 {
                     secure: true,
-                    httpOnly: true
+                    httpOnly: true,
+                    domain:env.CLIENT_URL
                 })
             .status(responseUtil.HTTP_OK)
             .json(responseUtil.buildJsonResponse(responseUtil.HTTP_TEXT_MESSAGES.HTTP_OK, null, true, userResource));
